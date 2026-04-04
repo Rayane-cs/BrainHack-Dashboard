@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrainHack Dashboard</title>
+  <style>
+    @font-face {
+      font-family: "Oughter-Regular";
+      src: url("./fonts/Oughter-Regular.otf") format("opentype");
+      font-display: swap;
+    }
+
+    .font-oughter { font-family: "Oughter-Regular", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+    * { font-family: "Oughter-Regular", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; }
+    :root {
+      --primary: #198acd;
+      --secondary: #28bbe8;
+      --accent: #3ed2ff;
+      --dark: #000101;
+      --card-bg: #0a1628;
+      --text: #e6f7ff;
+      --muted: #7fa6bd;
+      --gradient: linear-gradient(135deg, #198acd, #28bbe8);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Oughter-Regular", sans-serif;
+    }
+
+    body {
+      background: var(--dark);
+      color: var(--text);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* Animated Background */
+    .parallax-grid {
+      position: fixed;
+      top: -20%;
+      bottom: -20%;
+      left: 0;
+      right: 0;
+      z-index: 0;
+      pointer-events: none;
+      opacity: 0.2;
+    }
+
+    .bg-grid-tech {
+      background-size: 50px 50px;
+      background-repeat: repeat;
+      background-image: 
+        radial-gradient(circle at 1.5px 1.5px, rgba(62, 210, 255, 0.8) 1.5px, transparent 0),
+        linear-gradient(to right, rgba(62, 210, 255, 0.1) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(62, 210, 255, 0.1) 1px, transparent 1px);
+    }
+
+    @keyframes gridMove {
+      0% { background-position: 0 0, 200px 200px, 400px 400px; }
+      100% { background-position: 400px 400px, 600px 600px, 800px 800px; }
+    }
+
+    .bg-vignette {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, transparent 40%, rgba(0, 1, 1, 0.8) 100%);
+      z-index: -1;
+    }
+
+    .password-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 1, 1, 0.96);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      padding: 20px;
+    }
+
+    .password-box {
+      width: min(460px, 100%);
+      background: rgba(10, 22, 40, 0.95);
+      border: 1px solid rgba(62, 210, 255, 0.22);
+      border-radius: 24px;
+      padding: 40px 30px;
+      text-align: center;
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+    }
+
+    .password-box h2 {
+      margin-bottom: 22px;
+      font-size: 2rem;
+      letter-spacing: 0.02em;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .password-box input {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 1px solid rgba(62, 210, 255, 0.2);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      margin-bottom: 18px;
+      font-size: 1rem;
+    }
+
+    .password-box button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #198acd, #28bbe8);
+      color: var(--dark);
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    .password-box button:hover {
+      transform: translateY(-2px);
+    }
+
+    .password-error {
+      min-height: 22px;
+      margin-top: 12px;
+      color: #ff7a7a;
+      font-size: 0.95rem;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 60px 20px;
+      position: relative;
+    }
+
+    .header h1 {
+      font-size: clamp(3rem, 10vw, 6rem);
+      font-weight: 900;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 30px rgba(62, 210, 255, 0.5);
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 1.2rem;
+      color: var(--muted);
+    }
+
+    /* Stats Cards */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      padding: 0 20px;
+      margin-bottom: 50px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, var(--card-bg) 0%, rgba(25, 138, 205, 0.1) 100%);
+      border: 1px solid rgba(62, 210, 255, 0.2);
+      border-radius: 20px;
+      padding: 40px 30px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-10px);
+      border-color: var(--accent);
+      box-shadow: 0 20px 40px rgba(62, 210, 255, 0.2);
+    }
+
+    .stat-card::before {
+      content: attr(data-bg);
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 8rem;
+      font-weight: 900;
+      background: linear-gradient(to top, rgba(62, 210, 255, 0.1), rgba(25, 138, 205, 0.05));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: blur(3px);
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .stat-card h3 {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-bottom: 20px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-card .number {
+      font-size: 4rem;
+      font-weight: 900;
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 40px;
+      padding: 0 20px;
+    }
+
+    .tab {
+      padding: 12px 24px;
+      background: var(--card-bg);
+      border: 1px solid rgba(62, 210, 255, 0.2);
+      border-radius: 25px;
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .tab.active {
+      background: var(--gradient);
+      border-color: var(--accent);
+      color: var(--dark);
+    }
+
+    .tab:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+
+    /* Table Styles */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      padding: 0 20px;
+      margin-bottom: 50px;
+    }
+
+    .registrations-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 800px;
+      background: linear-gradient(135deg, var(--card-bg) 0%, rgba(40, 187, 232, 0.05) 100%);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(62, 210, 255, 0.2);
+    }
+
+    .registrations-table th,
+    .registrations-table td {
+      padding: 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(62, 210, 255, 0.1);
+    }
+
+    .registrations-table th {
+      background: rgba(25, 138, 205, 0.2);
+      font-weight: 600;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .registrations-table tr:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .registrations-table .status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    .registrations-table .pending { background: rgba(255, 165, 0, 0.2); color: orange; }
+    .registrations-table .accepted { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
+    .registrations-table .rejected { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+
+    .registrations-table .actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .registrations-table button {
+      padding: 8px 12px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .registrations-table .accept {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+    }
+
+    .registrations-table .reject {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+
+    .registrations-table .view {
+      background: linear-gradient(135deg, #198acd, #28bbe8);
+      color: var(--dark);
+    }
+
+    .registrations-table button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: linear-gradient(135deg, var(--card-bg) 0%, rgba(25, 138, 205, 0.1) 100%);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 40px;
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .modal-content h3 {
+      margin-bottom: 20px;
+      color: var(--text);
+    }
+
+    .modal-content p {
+      margin-bottom: 30px;
+      color: var(--muted);
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .modal-buttons button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .modal-buttons .confirm {
+      background: var(--gradient);
+      color: var(--dark);
+    }
+
+    .modal-buttons .cancel {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
+
+    .modal-buttons button:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .stats {
+        grid-template-columns: 1fr;
+      }
+      .registrations {
+        grid-template-columns: 1fr;
+      }
+      .tabs {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="parallax-grid bg-grid-tech"></div>
+  <div class="bg-vignette"></div>
+
+  <div class="password-overlay" id="password-overlay">
+    <div class="password-box">
+      <h2>Enter Dashboard Password</h2>
+      <input id="dashboard-password" type="password" placeholder="Password" autocomplete="off" />
+      <button type="button" onclick="verifyPassword()">Unlock Dashboard</button>
+      <div class="password-error" id="password-error"></div>
+    </div>
+  </div>
+
+  <div class="header">
+    <h1>Dashboard</h1>
+    <p>Manage Hackathon Registrations</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card" data-bg="ALL">
+      <h3>Total Registrations</h3>
+      <div class="number" id="total-count">0</div>
+    </div>
+    <div class="stat-card" data-bg="PENDING">
+      <h3>Pending</h3>
+      <div class="number" id="pending-count">0</div>
+    </div>
+    <div class="stat-card" data-bg="ACCEPTED">
+      <h3>Accepted</h3>
+      <div class="number" id="accepted-count">0</div>
+    </div>
+    <div class="stat-card" data-bg="REJECTED">
+      <h3>Rejected</h3>
+      <div class="number" id="rejected-count">0</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" data-filter="all">ALL</div>
+    <div class="tab" data-filter="pending">Pending</div>
+    <div class="tab" data-filter="accepted">Accepted</div>
+    <div class="tab" data-filter="rejected">Rejected</div>
+  </div>
+
+  <div class="table-container">
+    <table class="registrations-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Number</th>
+          <th>Level</th>
+          <th>Speciality</th>
+          <th>Status</th>
+          <th>Portfolio</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="registrations-container">
+        <!-- Rows will be loaded here -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="modal" id="details-modal">
+    <div class="modal-content" style="max-width: 500px; text-align: left; width: 90%;">
+      <h3 style="text-align: center; margin-bottom: 25px;">Participant Details</h3>
+      <div id="details-body" style="line-height: 1.8; color: var(--text);">
+        <!-- Details loaded here -->
+      </div>
+      <div class="modal-buttons" style="margin-top: 30px;">
+        <button class="cancel" onclick="closeDetailsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="confirm-modal">
+    <div class="modal-content">
+      <h3 id="modal-title">Confirm Action</h3>
+      <p id="modal-message">Are you sure you want to proceed?</p>
+      <div class="modal-buttons">
+        <button class="cancel" onclick="closeModal()">Cancel</button>
+        <button class="confirm" id="confirm-btn">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let registrations = [];
+    let currentFilter = 'all';
+
+    // Fetch registrations from API
+    async function fetchRegistrations() {
+      try {
+        const response = await fetch('https://brain-hack-dashboard-api.vercel.app/api/registrations');
+        if (!response.ok) throw new Error('API not available');
+        registrations = await response.json();
+      } catch (error) {
+        console.log('API error:', error.message);
+        registrations = [];
+      }
+      renderStats();
+      renderRegistrations();
+    }
+
+    // Render registrations
+    function renderStats() {
+      const total = registrations.length;
+      const pending = registrations.filter(r => r.status === 'pending').length;
+      const accepted = registrations.filter(r => r.status === 'accepted').length;
+      const rejected = registrations.filter(r => r.status === 'rejected').length;
+
+      document.getElementById('total-count').textContent = total;
+      document.getElementById('pending-count').textContent = pending;
+      document.getElementById('accepted-count').textContent = accepted;
+      document.getElementById('rejected-count').textContent = rejected;
+    }
+
+    // Render registrations
+    function renderRegistrations() {
+      const container = document.getElementById('registrations-container');
+      container.innerHTML = '';
+
+      const filtered = currentFilter === 'all' ? registrations : registrations.filter(r => r.status === currentFilter);
+
+      filtered.forEach(reg => {
+        const row = document.createElement('tr');
+        
+        let pLink = 'None';
+        if (reg.portfolio_link && reg.portfolio_link.trim() !== '') {
+          pLink = `<a href="${reg.portfolio_link}" target="_blank" style="color: var(--accent); text-decoration: none;">Link</a>`;
+        }
+
+        let actionButtons = `<button class="view" onclick="viewDetails(${reg.id})">View Details</button>`;
+        if (reg.status === 'pending') {
+          actionButtons += `
+            <button class="accept" onclick="confirmAction('accept', ${reg.id})">Accept</button>
+            <button class="reject" onclick="confirmAction('reject', ${reg.id})">Reject</button>
+          `;
+        }
+
+        row.innerHTML = `
+          <td>${reg.full_name}</td>
+          <td>${reg.registration_number}</td>
+          <td>${reg.level}</td>
+          <td>${reg.speciality}</td>
+          <td><span class="status ${reg.status}">${reg.status.toUpperCase()}</span></td>
+          <td>${pLink}</td>
+          <td class="actions">
+            ${actionButtons}
+          </td>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // Tab filtering
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentFilter = tab.dataset.filter;
+        renderRegistrations();
+      });
+    });
+
+    // View Details Modal
+    function viewDetails(id) {
+      const reg = registrations.find(r => r.id === id);
+      if (!reg) return;
+      
+      let pLink = 'None';
+      if (reg.portfolio_link && reg.portfolio_link.trim() !== '') {
+        pLink = `<a href="${reg.portfolio_link}" target="_blank" style="color: var(--accent); text-decoration: none; word-break: break-all;">${reg.portfolio_link}</a>`;
+      }
+      
+      const statusClass = reg.status;
+      let statusColor = '';
+      if (statusClass === 'pending') statusColor = 'color: orange;';
+      if (statusClass === 'accepted') statusColor = 'color: #22c55e;';
+      if (statusClass === 'rejected') statusColor = 'color: #ef4444;';
+      
+      document.getElementById('details-body').innerHTML = `
+        <p><strong>Full Name:</strong> ${reg.full_name}</p>
+        <p><strong>Email:</strong> ${reg.email}</p>
+        <p><strong>Phone:</strong> ${reg.phone}</p>
+        <p><strong>Registration Number:</strong> ${reg.registration_number}</p>
+        <p><strong>Level:</strong> ${reg.level}</p>
+        <p><strong>Speciality:</strong> ${reg.speciality}</p>
+        <p><strong>Status:</strong> <span style="${statusColor} font-weight: bold;">${reg.status.toUpperCase()}</span></p>
+        <p><strong>Portfolio Link:</strong> ${pLink}</p>
+      `;
+      document.getElementById('details-modal').style.display = 'flex';
+    }
+
+    function closeDetailsModal() {
+      document.getElementById('details-modal').style.display = 'none';
+    }
+
+    // Confirm action
+    let currentAction = null;
+    let currentId = null;
+
+    function confirmAction(action, id) {
+      currentAction = action;
+      currentId = id;
+      const modal = document.getElementById('confirm-modal');
+      const title = document.getElementById('modal-title');
+      const message = document.getElementById('modal-message');
+      const confirmBtn = document.getElementById('confirm-btn');
+
+      if (action === 'accept') {
+        title.textContent = 'Accept Registration';
+        message.textContent = 'Are you sure you want to accept this registration? An email will be sent.';
+        confirmBtn.textContent = 'Accept';
+        confirmBtn.onclick = () => performAction();
+      } else {
+        title.textContent = 'Reject Registration';
+        message.textContent = 'Are you sure you want to reject this registration? An email will be sent.';
+        confirmBtn.textContent = 'Reject';
+        confirmBtn.onclick = () => performAction();
+      }
+
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('confirm-modal').style.display = 'none';
+      currentAction = null;
+      currentId = null;
+    }
+
+    async function performAction() {
+      try {
+        const response = await fetch(`https://brain-hack-dashboard-api.vercel.app/api/${currentAction}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: currentId })
+        });
+
+        if (response.ok) {
+          // Update local data
+          const reg = registrations.find(r => r.id === currentId);
+          if (reg) {
+            reg.status = currentAction === 'accept' ? 'accepted' : 'rejected';
+          }
+          renderStats();
+          renderRegistrations();
+          closeModal();
+        } else {
+          alert('Error performing action');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error performing action');
+      }
+    }
+
+    function verifyPassword() {
+      const passwordInput = document.getElementById('dashboard-password');
+      const errorLabel = document.getElementById('password-error');
+      const overlay = document.getElementById('password-overlay');
+      const password = passwordInput.value.trim();
+
+      if (password === '1826') {
+        errorLabel.textContent = '';
+        overlay.style.display = 'none';
+        fetchRegistrations();
+      } else {
+        errorLabel.textContent = 'Incorrect password. Please try again.';
+      }
+    }
+
+    document.getElementById('dashboard-password').addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        verifyPassword();
+      }
+    });
+
+    // Initialize
+    // Dashboard will load after password entry
+  </script>
+</body>
+</html>
