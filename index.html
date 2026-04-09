@@ -267,7 +267,7 @@
     .registrations-table {
       width: 100%;
       border-collapse: collapse;
-      min-width: 800px;
+      min-width: 1020px;
       background: linear-gradient(135deg, var(--card-bg) 0%, rgba(40, 187, 232, 0.05) 100%);
       border-radius: 16px;
       overflow: hidden;
@@ -467,6 +467,8 @@
           <th>Number</th>
           <th>Level</th>
           <th>Speciality</th>
+          <th>Town</th>
+          <th>Stop station</th>
           <th>Status</th>
           <th>Portfolio</th>
           <th>Actions</th>
@@ -505,6 +507,16 @@
     let registrations = [];
     let currentFilter = 'all';
 
+    function escapeHtml(s) {
+      if (s == null || s === undefined) return '';
+      const d = document.createElement('div');
+      d.textContent = String(s);
+      return d.innerHTML;
+    }
+    function escapeAttr(s) {
+      return escapeHtml(s).replace(/"/g, '&quot;');
+    }
+
     // Fetch registrations from API
     async function fetchRegistrations() {
       try {
@@ -541,10 +553,12 @@
 
       filtered.forEach(reg => {
         const row = document.createElement('tr');
+        const town = (reg.town_name && String(reg.town_name).trim()) ? escapeHtml(reg.town_name) : '—';
+        const stopStation = (reg.stop_station_name && String(reg.stop_station_name).trim()) ? escapeHtml(reg.stop_station_name) : '—';
         
         let pLink = 'None';
         if (reg.portfolio_link && reg.portfolio_link.trim() !== '') {
-          pLink = `<a href="${reg.portfolio_link}" target="_blank" style="color: var(--accent); text-decoration: none;">Link</a>`;
+          pLink = `<a href="${escapeAttr(reg.portfolio_link)}" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: none;">Link</a>`;
         }
 
         let actionButtons = `<button class="view" onclick="viewDetails(${reg.id})">View Details</button>`;
@@ -556,10 +570,12 @@
         }
 
         row.innerHTML = `
-          <td>${reg.full_name}</td>
-          <td>${reg.registration_number}</td>
-          <td>${reg.level}</td>
-          <td>${reg.speciality}</td>
+          <td>${escapeHtml(reg.full_name)}</td>
+          <td>${escapeHtml(reg.registration_number)}</td>
+          <td>${escapeHtml(reg.level)}</td>
+          <td>${escapeHtml(reg.speciality)}</td>
+          <td>${town}</td>
+          <td>${stopStation}</td>
           <td><span class="status ${reg.status}">${reg.status.toUpperCase()}</span></td>
           <td>${pLink}</td>
           <td class="actions">
@@ -587,8 +603,12 @@
       
       let pLink = 'None';
       if (reg.portfolio_link && reg.portfolio_link.trim() !== '') {
-        pLink = `<a href="${reg.portfolio_link}" target="_blank" style="color: var(--accent); text-decoration: none; word-break: break-all;">${reg.portfolio_link}</a>`;
+        const u = escapeAttr(reg.portfolio_link);
+        pLink = `<a href="${u}" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: none; word-break: break-all;">${escapeHtml(reg.portfolio_link)}</a>`;
       }
+
+      const town = (reg.town_name && String(reg.town_name).trim()) ? escapeHtml(reg.town_name) : '—';
+      const stopStation = (reg.stop_station_name && String(reg.stop_station_name).trim()) ? escapeHtml(reg.stop_station_name) : '—';
       
       const statusClass = reg.status;
       let statusColor = '';
@@ -597,12 +617,14 @@
       if (statusClass === 'rejected') statusColor = 'color: #ef4444;';
       
       document.getElementById('details-body').innerHTML = `
-        <p><strong>Full Name:</strong> ${reg.full_name}</p>
-        <p><strong>Email:</strong> ${reg.email}</p>
-        <p><strong>Phone:</strong> ${reg.phone}</p>
-        <p><strong>Registration Number:</strong> ${reg.registration_number}</p>
-        <p><strong>Level:</strong> ${reg.level}</p>
-        <p><strong>Speciality:</strong> ${reg.speciality}</p>
+        <p><strong>Full Name:</strong> ${escapeHtml(reg.full_name)}</p>
+        <p><strong>Email:</strong> ${escapeHtml(reg.email)}</p>
+        <p><strong>Phone:</strong> ${escapeHtml(reg.phone)}</p>
+        <p><strong>Registration Number:</strong> ${escapeHtml(reg.registration_number)}</p>
+        <p><strong>Level:</strong> ${escapeHtml(reg.level)}</p>
+        <p><strong>Speciality:</strong> ${escapeHtml(reg.speciality)}</p>
+        <p><strong>Town:</strong> ${town}</p>
+        <p><strong>Stop station:</strong> ${stopStation}</p>
         <p><strong>Status:</strong> <span style="${statusColor} font-weight: bold;">${reg.status.toUpperCase()}</span></p>
         <p><strong>Portfolio Link:</strong> ${pLink}</p>
       `;
